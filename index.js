@@ -12,8 +12,9 @@ class ConsoleTable {
      * @param {Object.<string, string>=} params.headers объект с отображением ключей на заголовки в таблице
      * @param {string[]=} params.excludedKeys массив ключей, которые будут игнорироваться при выводе
      * @param {function (string, string, boolean, {}): string=} params.mapValue функция для отображения данных,
-     *      которая должна возвращать новое отображение для объекта, принимает параметры в порядке следования:
+     *      которая должна возвращать новое отображение для ячейки таблицы, принимает параметры в порядке следования:
      *      ключ объекта, его строковое, сформированное значение уже с пробелами, true если это строка заголовков и объект
+     *      для отображения в этой строке
      * @param {function (string): string=} params.mapBorder функция для отображения границ,
      *      которая должна возвращать новое отображение границы, принимает параметр в строковом значении границы
      */
@@ -120,6 +121,106 @@ class ConsoleTable {
         });
         output.push(this._makeBottomRow(columnWidths));
         return output;
+    }
+
+    _checkParams() {
+        if (this.params.onlyKeys.length === 0) {
+            throw new Error('Need param onlyKeys');
+        }
+    }
+
+
+    /**
+     * Возвращает массив из строк для заголовка
+     * 
+     * @return {string[]}
+     */
+    getHeader() {
+        const {
+            onlyKeys,
+            headers,
+        } = this.params;
+
+        this._checkParams();
+        const headerKeys = onlyKeys.map(key => headers[key] || key);
+        const columnWidths = this._makeColumnWidths(onlyKeys.length);
+        const output = [];
+        output.push(this._makeTopRow(columnWidths),
+            this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
+            this._makeCenterRow(columnWidths));
+        
+        return output;
+    }
+
+    /**
+     * Возвращает массив из строк для внутреннего заголовка
+     * 
+     * @return {string[]}
+     */
+    getInnerHeader() {
+        const {
+            onlyKeys,
+            headers,
+        } = this.params;
+
+        this._checkParams();
+        const headerKeys = onlyKeys.map(key => headers[key] || key);
+        const columnWidths = this._makeColumnWidths(onlyKeys.length);
+        const output = [];
+        output.push(this._makeCenterRow(columnWidths),
+            this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
+            this._makeCenterRow(columnWidths));
+        
+        return output;
+    }
+
+    /**
+     * Возвращает массив из строк для горизонтальной строки разделителя
+     * 
+     * @return {string[]}
+     */
+    getHR() {
+        const {
+            onlyKeys,
+        } = this.params;
+
+        this._checkParams();
+        const columnWidths = this._makeColumnWidths(onlyKeys.length);
+
+        return [this._makeCenterRow(columnWidths)];
+    }
+
+    /**
+     * Возвращает массив из строк для объекта
+     * 
+     * @param {{}} obj 
+     * @return {string[]}
+     */
+    getRow(obj) {
+        const {
+            onlyKeys,
+        } = this.params;
+
+        this._checkParams();
+        const columnWidths = this._makeColumnWidths(onlyKeys.length);
+
+        return [this._makeKeysRow(columnWidths, onlyKeys, this._extractValuesByKeys(onlyKeys, obj), false, obj)];
+    }
+
+    /**
+     * Возвращает массив из строк для последней строки таблицы
+     * 
+     * @return {string[]}
+     */
+    getEndLine() {
+        const {
+            onlyKeys,
+        } = this.params;
+
+        this._checkParams();
+        const columnWidths = this._makeColumnWidths(onlyKeys.length);
+
+        return [this._makeBottomRow(columnWidths)];
     }
 }
 
