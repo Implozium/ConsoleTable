@@ -1,0 +1,26 @@
+{
+    "name": "consoletable",
+    "version": "1.0.0",
+    "description": "ConsoleTable\r ============",
+    "main": "index.js",
+    "directories": {
+        "example": "examples"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Implozium/ConsoleTable.git"
+    },
+    "keywords": [
+        "table",
+        "console"
+    ],
+    "author": "Implozium",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Implozium/ConsoleTable/issues"
+    },
+    "homepage": "https://github.com/Implozium/ConsoleTable#readme"
+}
