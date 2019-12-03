@@ -4,19 +4,26 @@ class ConsoleTable {
     /**
      * 
      * @param {Object} params параметры
-     * @param {number=} params.width ширина таблицы в символах
-     * @param {number=} params.hrOnEvery вывод строки разделителя каждые **hrOnEvery** строк данных, при 0 не выводится
+     * @param {number=} params.width ширина таблицы в символах, по умолчанию 120
+     * @param {number=} params.hrOnEvery вывод строки разделителя каждые **hrOnEvery** строк данных, при 0 не выводится, по умолчанию 0
      * @param {number=} params.titleOnEvery вывод строк заголовков каждые **titleOnEvery** строк данных, при 0 не выводится,
-     *      если в строке должен вывестись заголовок и разделитель, то приоритет отдается разделителю
-     * @param {string[]=} params.onlyKeys массив ключей, которые только будут выводиться в указаном, при пустом выводятся все
-     * @param {Object.<string, string>=} params.headers объект с отображением ключей на заголовки в таблице
-     * @param {string[]=} params.excludedKeys массив ключей, которые будут игнорироваться при выводе
-     * @param {function (string, string, boolean, {}): string=} params.mapValue функция для отображения данных,
+     *      если в строке должен вывестись заголовок и разделитель, то приоритет отдается разделителю, по умолчанию 0
+     * @param {string[]=} params.onlyKeys массив ключей, которые только будут выводиться в указаном, при пустом выводятся все, по умолчанию пустой массив
+     * @param {Object.<string, string>=} params.headers объект с отображением ключей на заголовки в таблице, по умолчанию пустой объект
+     * @param {string[]=} params.excludedKeys массив ключей, которые будут игнорироваться при выводе, по умолчанию пустой массив
+     * @param {function (string, string, boolean, {}, number): string=} params.mapValue функция для отображения данных,
      *      которая должна возвращать новое отображение для ячейки таблицы, принимает параметры в порядке следования:
-     *      ключ объекта, его строковое, сформированное значение уже с пробелами, true если это строка заголовков и объект
-     *      для отображения в этой строке
+     *      ключ объекта,
+     *      его строковое, сформированное значение уже с пробелами,
+     *      true если это строка заголовков, иначе false
+     *      объект для отображения в этой строке,
+     *      номер строки для вывода
      * @param {function (string): string=} params.mapBorder функция для отображения границ,
      *      которая должна возвращать новое отображение границы, принимает параметр в строковом значении границы
+     * @param {boolean=} params.wrap при значении true включает перенос строк, по умолчанию true
+     * @param {string=} params.wordBreak при значении "all" перенос строк идет по символьно,
+     *      при значении "word" перенос строк идет по словам, при невозможности переносить по словам, идет перенос по символам,
+     *      по умолчанию "word"
      */
     constructor(params = {}) {
         this.params = Object.assign({
@@ -26,8 +33,9 @@ class ConsoleTable {
             onlyKeys: [],
             headers: {},
             excludedKeys: [],
-            mapValue: (key, value, isHeader, obj) => value,
+            mapValue: (key, value, isHeader, obj, number) => value,
             mapBorder: (value) => value,
+            wrap: true,
         }, params);
     }
 
@@ -74,13 +82,39 @@ class ConsoleTable {
     _makeKeysRow(columnWidths, keys, values, isHeader, obj) {
         const {
             mapValue,
+            wrap,
+            wordBreak,
         } = this.params;
 
-        return this.params.mapBorder('│')
-            + columnWidths.map((width, i) => {
-                return mapValue(keys[i], this._frm(values[i].substr(0, width - 2) + ' ', width), isHeader, obj);
-            }).join(this.params.mapBorder('│'))
-            + this.params.mapBorder('│');
+        const output = [];
+        let wrappedValues = [];
+        if (!wrap || wordBreak === 'all') {
+            wrappedValues = columnWidths.map((width, i) => values[i].match(new RegExp(`.{1,${width - 2}}|^$`, 'g')));
+        } else {
+            wrappedValues = columnWidths.map((width, i) => {
+                const output = [];
+                values[i].split(' ').forEach((word) => {
+                    if (output.length && output[output.length - 1].length !== 0 && width - output[output.length - 1].length - 2 >= word.length + 1) {
+                        output[output.length - 1] += ' ' + word;
+                    } else {
+                        output.push(...word.match(new RegExp(`.{1,${width - 2}}|^$`, 'g')));
+                    }
+                });
+                return output;
+            });
+        }
+        const max = wrappedValues.reduce((max, column) => max > column.length ? max : column.length, 0);
+        for (let j = 0; j < max; j++) {
+            output.push(
+                this.params.mapBorder('│')
+                + columnWidths.map((width, i) => {
+                    return mapValue(keys[i], this._frm(wrappedValues[i][j] === undefined ? '' : wrappedValues[i][j] + ' ', width), isHeader, obj, j);
+                }).join(this.params.mapBorder('│'))
+                + this.params.mapBorder('│')
+            );
+        }
+
+        return output.slice(0, wrap ? output.length : 1);
     }
 
     _extractValuesByKeys(keys, obj) {
@@ -106,15 +140,19 @@ class ConsoleTable {
         const headerKeys = keys.map(key => headers[key] || key);
         const columnWidths = this._makeColumnWidths(keys.length);
         const output = [];
-        output.push(this._makeTopRow(columnWidths),
-            this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
-            this._makeCenterRow(columnWidths));
+        output.push(
+            this._makeTopRow(columnWidths),
+            ...this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
+            this._makeCenterRow(columnWidths)
+        );
         arr.forEach((obj, i, arr) => {
-            output.push(this._makeKeysRow(columnWidths, keys, this._extractValuesByKeys(keys, obj), false, obj));
+            output.push(...this._makeKeysRow(columnWidths, keys, this._extractValuesByKeys(keys, obj), false, obj));
             if (titleOnEvery && i && arr.length !== i + 1 && (i + 1) % titleOnEvery === 0) {
-                output.push(this._makeCenterRow(columnWidths),
-                    this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
-                    this._makeCenterRow(columnWidths));
+                output.push(
+                    this._makeCenterRow(columnWidths),
+                    ...this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
+                    this._makeCenterRow(columnWidths)
+                );
             } else if (hrOnEvery && i && arr.length !== i + 1 && (i + 1) % hrOnEvery === 0) {
                 output.push(this._makeCenterRow(columnWidths));
             }
@@ -145,9 +183,11 @@ class ConsoleTable {
         const headerKeys = onlyKeys.map(key => headers[key] || key);
         const columnWidths = this._makeColumnWidths(onlyKeys.length);
         const output = [];
-        output.push(this._makeTopRow(columnWidths),
-            this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
-            this._makeCenterRow(columnWidths));
+        output.push(
+            this._makeTopRow(columnWidths),
+            ...this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
+            this._makeCenterRow(columnWidths)
+        );
         
         return output;
     }
@@ -167,9 +207,11 @@ class ConsoleTable {
         const headerKeys = onlyKeys.map(key => headers[key] || key);
         const columnWidths = this._makeColumnWidths(onlyKeys.length);
         const output = [];
-        output.push(this._makeCenterRow(columnWidths),
-            this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
-            this._makeCenterRow(columnWidths));
+        output.push(
+            this._makeCenterRow(columnWidths),
+            ...this._makeKeysRow(columnWidths, headerKeys, headerKeys, true, {}),
+            this._makeCenterRow(columnWidths)
+        );
         
         return output;
     }
@@ -204,7 +246,7 @@ class ConsoleTable {
         this._checkParams();
         const columnWidths = this._makeColumnWidths(onlyKeys.length);
 
-        return [this._makeKeysRow(columnWidths, onlyKeys, this._extractValuesByKeys(onlyKeys, obj), false, obj)];
+        return this._makeKeysRow(columnWidths, onlyKeys, this._extractValuesByKeys(onlyKeys, obj), false, obj);
     }
 
     /**
