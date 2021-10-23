@@ -1,5 +1,5 @@
-const ConsoleTable = require('../index');
-const ANSIEscapeCodes = require('../ANSIEscapeCodes');
+import ConsoleTable from '../src/index';
+import ANSIEscapeCodes from '../src/ANSIEscapeCodes';
 
 const data = [
     {
@@ -148,4 +148,4 @@ new ConsoleTable({
     }
 })
     .make(data)
-    .forEach(row => console.log(row));
+    .forEach((row) => console.log(row));

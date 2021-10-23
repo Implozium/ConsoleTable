@@ -1,26 +1,46 @@
 {
-    "name": "consoletable",
-    "version": "1.0.0",
-    "description": "ConsoleTable\r ============",
-    "main": "index.js",
-    "directories": {
-        "example": "examples"
-    },
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Implozium/ConsoleTable.git"
-    },
-    "keywords": [
-        "table",
-        "console"
-    ],
-    "author": "Implozium",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/Implozium/ConsoleTable/issues"
-    },
-    "homepage": "https://github.com/Implozium/ConsoleTable#readme"
+  "name": "consoletable",
+  "version": "1.0.0",
+  "description": "ConsoleTable",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "jest --config jestconfig.json",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "author": "Sergey Timonovskiy",
+  "license": "ISC",
+  "keywords": [
+    "Console",
+    "TypeScript",
+    "Table"
+  ],
+  "devDependencies": {
+    "@types/jest": "^26.0.20",
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1",
+    "ts-jest": "^26.5.3",
+    "ts-node": "^10.4.0",
+    "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^4.2.3"
+  },
+  "files": [
+    "lib/**/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Implozium/ConsoleTable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Implozium/ConsoleTable/issues"
+  },
+  "homepage": "https://github.com/Implozium/ConsoleTable#readme"
 }

@@ -5,7 +5,7 @@ ConsoleTable
 
 ## Использование
 
-**`const ConsoleTable = require('./ConsoleTable')`** - подключение.
+**`import ConsoleTable from './ConsoleTable'`** - подключение.
 
 **`const aConsoleTable = new ConsoleTable([options])`** - создает объект таблицы, где `options` - объект опции для настройки отображения и состоит из свойств:
 - `width` - ширина таблицы в символах, по умолчанию 120;
@@ -23,8 +23,8 @@ ConsoleTable
 
 Пример:
 
-```javascript
-const ConsoleTable = require('./ConsoleTable');
+```typescript
+import ConsoleTable from '../src/index';
 
 const options = {};
 const data = [{
@@ -43,7 +43,7 @@ const data = [{
 
 const output = new ConsoleTable(options).make(data);
 
-output.forEach(row => console.log(row));
+output.forEach((row) => console.log(row));
 ```
 
 Результат:
@@ -56,7 +56,7 @@ output.forEach(row => console.log(row));
 └─────────────┴─────────────┴─────────────┴────────────────┘
 ```
 
-**`const ANSIEscapeCodes = require('./ANSIEscapeCodes');`** - подключение объекта с кодами ANSI для цветового отображения в консоли.
+**`import ANSIEscapeCodes from './ConsoleTable/ANSIEscapeCodes';`** - подключение объекта с кодами ANSI для цветового отображения в консоли.
 
 **`aConsoleTable.getHeader()`** - возвращает массив из строк для заголовка.
 

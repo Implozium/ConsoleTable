@@ -1,4 +1,4 @@
-const ConsoleTable = require('../index');
+import ConsoleTable from '../src/index';
 
 const data = [
     {
@@ -35,4 +35,4 @@ const data = [
 
 new ConsoleTable()
     .make(data)
-    .forEach(row => console.log(row));
+    .forEach((row) => console.log(row));

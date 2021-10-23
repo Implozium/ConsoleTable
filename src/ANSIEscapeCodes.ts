@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     COLORS: {
         BLACK: '\u001b[30m',
         RED: '\u001b[31m',
