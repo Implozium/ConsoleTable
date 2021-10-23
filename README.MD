@@ -5,7 +5,7 @@ ConsoleTable
 
 ## Использование
 
-**`import ConsoleTable from './ConsoleTable'`** - подключение.
+**`import ConsoleTable from 'consoletable';'`** - подключение.
 
 **`const aConsoleTable = new ConsoleTable([options])`** - создает объект таблицы, где `options` - объект опции для настройки отображения и состоит из свойств:
 - `width` - ширина таблицы в символах, по умолчанию 120;
@@ -56,7 +56,7 @@ output.forEach((row) => console.log(row));
 └─────────────┴─────────────┴─────────────┴────────────────┘
 ```
 
-**`import ANSIEscapeCodes from './ConsoleTable/ANSIEscapeCodes';`** - подключение объекта с кодами ANSI для цветового отображения в консоли.
+**`import ANSIEscapeCodes from 'consoletable/ANSIEscapeCodes';`** - подключение объекта с кодами ANSI для цветового отображения в консоли.
 
 **`aConsoleTable.getHeader()`** - возвращает массив из строк для заголовка.
 
